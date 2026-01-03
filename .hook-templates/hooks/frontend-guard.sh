@@ -25,7 +25,7 @@ set -euo pipefail
 ( cd frontend && ./node_modules/.bin/vite build --mode production ) >/dev/null || { echo "Hint: Fix production build errors." >&2; exit 1; }
 
 # 8) Architecture import rules (depcruise across src)
-( cd frontend && ./node_modules/.bin/depcruise --config ./.dependency-cruiser.cjs ./src ) >/dev/null || { echo "Hint: Fix depcruise violations (unresolvable, circular, dev-deps)." >&2; exit 1; }
+( cd frontend && ./node_modules/.bin/depcruise --config ./dependency-cruiser.cjs ./src ) >/dev/null || { echo "Hint: Fix depcruise violations (unresolvable, circular, dev-deps)." >&2; exit 1; }
 
 # 9) Unused exports/files (exclude main.tsx - entry point with intentional exports for React Fast Refresh)
 ( cd frontend && ./node_modules/.bin/ts-unused-exports tsconfig.app.json --showLineNumber --exitWithCount --excludePathsFromReport="src/main.tsx" ) >/dev/null || { echo "Hint: Remove or use unused exports." >&2; exit 1; }

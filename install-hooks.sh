@@ -155,22 +155,9 @@ uninstall_existing_hooks() {
 
     cd "$TARGET_DIR"
 
-    # Backup existing configs
-    if [[ -f ".pre-commit-config.yaml" ]] || [[ -d ".hooks" ]] || [[ -d ".semgrep" ]]; then
-        local backup_dir=".hooks-backup-$(date +%s)"
-        mkdir -p "$backup_dir"
-        log_info "Creating backup in $backup_dir/"
-
-        [[ -f ".pre-commit-config.yaml" ]] && cp ".pre-commit-config.yaml" "$backup_dir/"
-        [[ -f ".gitleaks.toml" ]] && cp ".gitleaks.toml" "$backup_dir/"
-        [[ -f ".jscpdrc" ]] && cp ".jscpdrc" "$backup_dir/"
-        [[ -d ".hooks" ]] && cp -r ".hooks" "$backup_dir/"
-        [[ -d ".semgrep" ]] && cp -r ".semgrep" "$backup_dir/"
-
-        log_success "Backup created: $backup_dir/"
-    fi
-
     # Remove existing hooks and configs
+    # Make hook scripts writable first (they are read-only)
+    [[ -d ".hooks" ]] && chmod -R u+w .hooks 2>/dev/null || true
     rm -rf .hooks
     rm -f .pre-commit-config.yaml
     rm -rf .semgrep
@@ -199,8 +186,8 @@ copy_hook_files() {
     # Copy hook scripts
     mkdir -p .hooks
     cp "$TEMPLATE_DIR/hooks"/*.sh .hooks/
-    chmod +x .hooks/*.sh
-    log_success "Hook scripts copied to .hooks/"
+    chmod 555 .hooks/*.sh
+    log_success "Hook scripts copied to .hooks/ (read-only)"
 
     # Copy config files
     cp "$TEMPLATE_DIR/configs/.pre-commit-config.yaml" .
@@ -390,13 +377,14 @@ setup_e2e_qa() {
     cp "$TEMPLATE_DIR/e2e-configs/playwright.config.ts" .
     [[ -f "$TEMPLATE_DIR/e2e-configs/tsconfig-additions.json" ]] && \
         cp "$TEMPLATE_DIR/e2e-configs/tsconfig-additions.json" tsconfig.json
-    log_success "Config files copied"
 
     # Configure ports in playwright.config.ts
     log_info "Configuring ports in playwright.config.ts..."
     sed -i.bak "s/__BACKEND_PORT__/$BACKEND_PORT/g" playwright.config.ts
     sed -i.bak "s/__FRONTEND_PORT__/$FRONTEND_PORT/g" playwright.config.ts
     rm -f playwright.config.ts.bak
+
+    log_success "Config files copied"
 
     # Install dependencies
     log_info "Installing npm dependencies..."

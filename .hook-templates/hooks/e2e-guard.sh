@@ -16,7 +16,7 @@ set -euo pipefail
 ( cd e2e-tests && node verify-credentials.cjs ) >/dev/null || { echo "Hint: Missing/invalid E2E test credentials." >&2; exit 1; }
 
 # 5) Duplication gate for tests
-./frontend/node_modules/.bin/jscpd --threshold 0 --gitignore e2e-tests/tests >/dev/null || { echo "Hint: Refactor duplicate E2E logic." >&2; exit 1; }
+./frontend/node_modules/.bin/jscpd --threshold 0 --gitignore e2e-tests/tests >/dev/null || { echo "Code duplication detected in E2E tests. MANDATORY: Extract duplicated logic into shared functions/modules. DO NOT ignore this check. DO NOT add jscpd ignore comments. DRY (Don't Repeat Yourself) is non-negotiable for maintainability." >&2; exit 1; }
 
 # 6) Max lines cap for tests (600)
 FILES=$(find e2e-tests/tests -type f \( -name '*.ts' -o -name '*.tsx' \))

@@ -18,7 +18,7 @@ out=$(backend/.venv/bin/mypy --strict backend 2>&1) || { printf "%s\n" "$out"; e
 out=$(backend/.venv/bin/xenon --max-absolute B --max-modules B --max-average A --exclude backend/.venv,backend/migrations backend 2>&1) || { printf "%s\n" "$out"; echo "Hint: Reduce function complexity (max cyclomatic complexity: 10). Refactor complex functions." >&2; exit 1; }
 
 # 5) Bandit security scan
-out=$(backend/.venv/bin/bandit -r backend -ll --exclude backend/.venv 2>&1) || { printf "%s\n" "$out"; echo "Hint: Address Bandit findings or mark justified ignores." >&2; exit 1; }
+out=$(backend/.venv/bin/bandit -r backend -ll --exclude backend/.venv 2>&1) || { printf "%s\n" "$out"; echo "MANDATORY: Fix all Bandit security findings. Suppressing findings with # nosec is ONLY allowed for verified false positives with documented justification. NEVER suppress real security issues." >&2; exit 1; }
 
 # 6) Django system checks
 out=$(backend/.venv/bin/python backend/manage.py check --fail-level WARNING 2>&1) || { printf "%s\n" "$out"; echo "Hint: Fix Django system check warnings/errors." >&2; exit 1; }
@@ -27,10 +27,10 @@ out=$(backend/.venv/bin/python backend/manage.py check --fail-level WARNING 2>&1
 out=$(cd backend && ./.venv/bin/lint-imports 2>&1) || { printf "%s\n" "$out"; echo "Hint: Fix import layer violations (check pyproject.toml [tool.importlinter])." >&2; exit 1; }
 
 # 8) Test coverage (90% minimum, branch coverage)
-out=$(cd backend && ./.venv/bin/pytest --cov=. --cov-report=term-missing:skip-covered --cov-fail-under=90 --cov-branch -q 2>&1) || { printf "%s\n" "$out"; echo "Hint: Add tests to reach 90% coverage or fix failing tests." >&2; exit 1; }
+out=$(cd backend && ./.venv/bin/pytest --cov=. --cov-report=term-missing:skip-covered --cov-fail-under=90 --cov-branch -q 2>&1) || { printf "%s\n" "$out"; echo "Test failure detected. FIRST: Fix all failing tests - they must pass. SECOND: Add tests to reach minimum 90% coverage. DO NOT lower coverage thresholds. DO NOT exclude files from coverage to game metrics." >&2; exit 1; }
 
 # 9) Dependency vulnerability scanning
-out=$(backend/.venv/bin/pip-audit 2>&1) || { printf "%s\n" "$out"; echo "Hint: Update vulnerable dependencies or mark false positives." >&2; exit 1; }
+out=$(backend/.venv/bin/pip-audit 2>&1) || { printf "%s\n" "$out"; echo "CRITICAL: Update all vulnerable dependencies immediately. Marking as false positive is ONLY permitted after thorough security review proving no exploitability. Document justification. When in doubt, update." >&2; exit 1; }
 
 # 10) Django migrations check
 out=$(backend/.venv/bin/python backend/manage.py makemigrations --check --dry-run 2>&1) || { printf "%s\n" "$out"; echo "Hint: Unapplied model changes detected. Run makemigrations." >&2; exit 1; }
@@ -39,7 +39,7 @@ out=$(backend/.venv/bin/python backend/manage.py makemigrations --check --dry-ru
 "$(dirname "$0")/backend-max-lines.sh" >/dev/null || exit 1
 
 # 12) Dead code detection
-out=$(cd backend && ./.venv/bin/vulture . 2>&1) || { printf "%s\n" "$out"; echo "Hint: Remove unused code or add to vulture whitelist." >&2; exit 1; }
+out=$(cd backend && ./.venv/bin/vulture . 2>&1) || { printf "%s\n" "$out"; echo "Unused code found. MANDATORY: Remove all dead code. NEVER whitelist to avoid fixing the issue. Whitelist exceptions require justification: Django framework methods, signal handlers, dynamic code execution, or public API surface. Prefer refactoring over whitelisting. When in doubt, delete." >&2; exit 1; }
 
 # 13) Bypass directive enforcement
 "$(dirname "$0")/check-bypass-directives.sh" || exit 1

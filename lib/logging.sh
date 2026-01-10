@@ -37,6 +37,45 @@ print_header() {
     printf "\n"
 }
 
+get_component_description() {
+    local component=$1
+    case "$component" in
+        shared-v2)
+            echo "Core configs (pre-commit, gitleaks, semgrep, jscpd)"
+            ;;
+        backend/django-v2)
+            echo "Backend QA (ruff, mypy, pytest, bandit, vulture, pip-audit)"
+            ;;
+        backend/django)
+            echo "Backend QA (Django)"
+            ;;
+        backend/go-v2)
+            echo "Backend QA (golangci-lint, gosec, go test)"
+            ;;
+        backend/go)
+            echo "Backend QA (Go)"
+            ;;
+        frontend/react-v2)
+            echo "Frontend QA (TypeScript, ESLint, vitest, knip, dependency-cruiser)"
+            ;;
+        frontend/react)
+            echo "Frontend QA (React)"
+            ;;
+        e2e/playwright-v2)
+            echo "E2E QA (Playwright tests, TypeScript checks)"
+            ;;
+        e2e/playwright)
+            echo "E2E QA (Playwright)"
+            ;;
+        shared)
+            echo "Shared configs"
+            ;;
+        *)
+            echo "$component"
+            ;;
+    esac
+}
+
 print_success_footer() {
     local components=("$@")
 
@@ -48,7 +87,10 @@ print_success_footer() {
     printf "${GREEN}╚══════════════════════════════════════════════════════════════════════╝${NC}\n"
     printf "\n"
     printf "Installed components:\n"
-    printf '  ✓ %s\n' "${components[@]}"
+    for component in "${components[@]}"; do
+        local description=$(get_component_description "$component")
+        printf "  ✓ %s\n" "$description"
+    done
     printf "\n"
     printf "Next steps:\n"
     printf "  1. Review installed hooks: .hooks/\n"

@@ -131,7 +131,7 @@ repos:
 
       - id: e2e-max-lines
         name: "e2e — max lines (600)"
-        entry: "bash -c 'FILES=$(find e2e-tests/tests -type f \( -name \"*.ts\" -o -name \"*.tsx\" \)); for f in $FILES; do lines=$(wc -l < \"$f\" | tr -d \"[:space:]\"); if [ \"$lines\" -gt 600 ]; then echo \"Error: $f exceeds limit (600 lines)\" >&2; exit 1; fi; done'"
+        entry: "bash -c 'FILES=$(find e2e-tests/tests -type f \\( -name \"*.ts\" -o -name \"*.tsx\" \\)); for f in $FILES; do lines=$(wc -l < \"$f\" | tr -d \"[:space:]\"); if [ \"$lines\" -gt 600 ]; then echo \"Error: $f exceeds limit (600 lines)\" >&2; exit 1; fi; done'"
         language: system
         pass_filenames: false
         files: '^e2e-tests/tests/.*\.(ts|tsx)$'
